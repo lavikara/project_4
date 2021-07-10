@@ -118,36 +118,28 @@ contract("Flight Surety Tests", async (accounts) => {
   it("(airline) fund and register airline until we have four airlines", async () => {
     let fund = await config.flightSuretyData.AIRLINE_SEED_FUNDING.call();
 
-    //TODO findout why passing msg.sender and msg.value doesn't work
-    await config.flightSuretyApp.fund(config.firstAirline, fund);
+    // await config.flightSuretyApp.fund(config.firstAirline, fund);
+    await config.flightSuretyApp.fund({
+      from: config.firstAirline,
+      value: fund,
+    });
 
     let fundedFirstAirline = await config.flightSuretyData.airlineFunded(
       config.firstAirline
     );
 
-    let a = await config.flightSuretyData.registerAirline(
-      config.firstAirlineName,
-      config.firstAirline
-      // { from: config.firstAirline }
-    );
-    console.log("registered: ", a);
-    let fundedSecondAirline = await config.flightSuretyApp.fund(
-      config.secondAirline,
-      fund
-    );
+    // let a = await config.flightSuretyApp.registerAirline(
+    //   config.firstAirlineName,
+    //   config.firstAirline,
+    //   { from: config.firstAirline }
+    // );
+
+    // let fundedSecondAirline = await config.flightSuretyApp.fund(
+    //   config.secondAirline,
+    //   fund
+    // );
 
     assert.equal(fundedFirstAirline, true, "First airline was not funded");
-    assert.equal(fundedSecondAirline, true, "Second airline was not funded");
+    // assert.equal(fundedSecondAirline, true, "Second airline was not funded");
   });
-
-  // it("(multiparty) register other airlines until we have four airlines", async () => {
-  //   let funded = await config.flightSuretyData.airlineFunded(
-  //     config.firstAirline
-  //   );
-  //   assert.equal(
-  //     funded,
-  //     true,
-  //     "Airline must be funded before registering new airline"
-  //   );
-  // });
 });

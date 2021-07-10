@@ -116,30 +116,30 @@ contract FlightSuretyApp  {
     * @dev Add an airline to the registration queue
     *
     */   
-    // function registerAirline (string name, address airline) external requireIsOperational requireAirlineFunded returns (bool, uint256) {
-    //     require(isAirlineRegistered(airline) == false, "Airline is already registered");
-    //     uint256 totalAirlines = flightSuretyData.getTotalAirlines();
-    //     if(totalAirlines < 4) {
-    //         flightSuretyData.registerAirline(name, airline);
-    //         return (true, 1);
-    //     } else {
-    //         require(voted(airline) == false, "Caller has already voted");
-    //         airlineVotes[airline].push(msg.sender);
-    //         uint256 requiredVotes = totalAirlines.div(2);
-    //         uint256 numberOfVotes = airlineVotes[airline].length;
-    //         if(totalAirlines % 2 != 0) {
-    //             requiredVotes = requiredVotes.add(1);
-    //         }
-    //         if(numberOfVotes == requiredVotes) {
-    //             flightSuretyData.registerAirline(name, airline);
-    //             return(true, numberOfVotes);
-    //         }
-    //         return (false, numberOfVotes);
-    //     }
-    // }
+    function registerAirline (string name, address airline) external requireIsOperational requireAirlineFunded returns (bool, uint256) {
+        require(isAirlineRegistered(airline) == false, "Airline is already registered");
+        uint256 totalAirlines = flightSuretyData.getTotalAirlines();
+        if(totalAirlines < 4) {
+            flightSuretyData.registerAirline(name, airline);
+            return (true, 1);
+        } else {
+            require(voted(airline) == false, "Caller has already voted");
+            airlineVotes[airline].push(msg.sender);
+            uint256 requiredVotes = totalAirlines.div(2);
+            uint256 numberOfVotes = airlineVotes[airline].length;
+            if(totalAirlines % 2 != 0) {
+                requiredVotes = requiredVotes.add(1);
+            }
+            if(numberOfVotes == requiredVotes) {
+                flightSuretyData.registerAirline(name, airline);
+                return(true, numberOfVotes);
+            }
+            return (false, numberOfVotes);
+        }
+    }
 
-    function fund(address airline,uint256 amount) requireIsOperational public payable {
-        flightSuretyData.fund(airline, amount);
+    function fund() requireIsOperational public payable {
+        flightSuretyData.fund(msg.sender, msg.value);
     }
 
     function buy (string flightCode, uint256 timestamp, address airline) public payable {

@@ -1,7 +1,6 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic =
-  // "tomorrow dry banner muffin blanket kiss often delay brisk cash crater deny";
-  "pepper harvest olympic asset assault endless smooth enlist embark toward hammer jungle";
+  "spray turkey puppy among laugh pelican eagle battle picnic math attend charge";
 
 module.exports = {
   networks: {
@@ -13,15 +12,9 @@ module.exports = {
       // gas: 999999,
     },
   },
-  // compilers: {
-  //   solc: {
-  //     version: "^0.4.24",
-  //   },
-  // },
   compilers: {
     solc: {
       version: "^0.4.24",
-      // version: "^0.8.0",
       optimizer: {
         enabled: false,
         runs: 200,
