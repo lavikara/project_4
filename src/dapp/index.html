@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>FlightSurety</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+    <script type="text/javascript">
+        "use strict"
+        let flightData, url;
+        url = "http://localhost:8000/"
+        $.get(url, (result) => {
+            flightData = result["flights"];
+            fetchAllFlights(url, "f");
+            fetchAllFlights(url, "i");
+            fetchAllFlights(url, "c");
+        });
+
+        function fetchAllFlights(url, prefix) {
+            let output;
+            output = `<select name="${prefix}flights" id="${prefix}flight-number" class="form-comtrol" onchange="showInfo(${JSON.stringify(flightData)},"${prefix}")">`
+            output += `<option value="">Select Flight</option>`
+            $.each(flightData, function (key, value) {
+                output += `<option value="${key}">${key}</option>`
+            })
+            output += `</select>`
+            output += `<span id="${prefix}flight-data"></span>`
+            $(`#${prefix}flight-content`).html(output)
+        }
+
+        function showInfo(data, prefix) {
+            let value = $(`#${prefix}flight-number`).val()
+            let output;
+            if (value.length > 0) {
+                output = `input type="hidden" id="${prefix}flight-airline" value="${data[value][0]}" />`
+                output += `<input type="hidden" id="${prefix}flight-timestamp" value="${data[value][1]}" />`
+                $(`#${prefix}flight-data`).html(output)
+            }
+        }
+    </script>
+
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="#">FlightSurety</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+            aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+
+    <main class="container">
+
+        <div id="display-wrapper" class="top-20">
+        </div>
+        <div class="content">
+            <div class="row top-20">
+                <div class="input-content">
+                    <label class="form">Buy insurance</label> <input type="text" id="flight-number">
+                </div>
+                <btn class="btn btn-primary" id="submit-oracle">Buy insurance</btn>
+            </div>
+            <div class="row top-20">
+                <div class="input-content">
+                    <label class="form">Flight status</label> <input type="text" id="flight-number">
+                </div>
+                <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            </div>
+            <div class="row top-20">
+                <div class="input-content">
+                    <label class="form">View flight status</label> <input type="text" id="flight-number">
+                </div>
+                <btn class="btn btn-primary" id="submit-oracle">View Status</btn>
+            </div>
+            <div class="row top-20">
+                <div class="btn-content">
+                    <!-- <label class="form">Check balance</label> -->
+                    <btn class="btn btn-primary btn-only" id="submit-oracle">Withdraw</btn>
+                    <btn class="btn btn-primary btn-only" id="submit-oracle">Check Account</btn>
+                </div>
+            </div>
+            <div class="row top-20">
+                <!-- <div class="btn-content"> -->
+                <!-- <label class="form">Withdraw</label> -->
+                <!-- <btn class="btn btn-primary" id="submit-oracle">Withdraw</btn> -->
+                <!-- </div> -->
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>
