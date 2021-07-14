@@ -1,20 +1,34 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic =
-  "spray turkey puppy among laugh pelican eagle battle picnic math attend charge";
+  "area shadow voyage noble abstract frost ocean rail fetch stand stand matrix";
+
+var NonceTrackerSubprovider = require("web3-provider-engine/subproviders/nonce-tracker");
 
 module.exports = {
   networks: {
     development: {
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 7545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
+    },
+    rinkeby: {
       provider: function () {
-        return new HDWalletProvider(mnemonic, "http://127.0.0.1:7545/", 0, 50);
+        var wallet = new HDWalletProvider(
+          mnemonic,
+          "http://127.0.0.1:7545/",
+          0,
+          50
+        );
+        var nonceTracker = new NonceTrackerSubprovider();
+        wallet.engine._providers.unshift(nonceTracker);
+        nonceTracker.setEngine(wallet.engine);
+        return wallet;
       },
-      network_id: "*",
-      // gas: 999999,
     },
   },
   compilers: {
     solc: {
-      version: "^0.4.24",
+      version: "^0.4.25",
       optimizer: {
         enabled: false,
         runs: 200,
