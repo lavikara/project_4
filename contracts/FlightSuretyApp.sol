@@ -81,7 +81,6 @@ contract FlightSuretyApp {
     constructor (address _airline, address _dataContract ) public {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(_dataContract);
-        // authorizedCaller(msg.sender);
         registerFirstAirline(_airline);
     }
 
@@ -89,12 +88,16 @@ contract FlightSuretyApp {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-    // function isOperational() public view returns(bool) {
-    //     return flightSuretyData.isOperational();  // Modify to call data contract's status
-    // }
+    function airlineRegistered(address _airline) requireIsOperational external view returns (bool) {
+        return flightSuretyData.airlineRegistered(_airline);
+    }
 
-    function setOperatingStatus(bool _mode) requireContractOwner external {
-        flightSuretyData.setOperatingStatus(_mode);
+    function airlineFunded (address _airline) requireIsOperational external view returns (bool) {
+       return flightSuretyData.airlineFunded(_airline);
+    }
+
+    function getInsuredPassengers (string _flightCode, uint256 _timestamp, address _airline) external view returns(address []) {
+        return flightSuretyData.getInsuredPassengers(_airline, _flightCode, _timestamp);
     }
 
     /********************************************************************************************/
@@ -115,10 +118,6 @@ contract FlightSuretyApp {
         flightSuretyData.fund(msg.sender, msg.value);
     }
 
-    function airlineFunded (address _airline) requireIsOperational external view returns (bool) {
-       return flightSuretyData.airlineFunded(_airline);
-    }
-
    /**
     * @dev Add an airline to the registration queue
     *
@@ -129,9 +128,6 @@ contract FlightSuretyApp {
         return flightSuretyData.airlineRegistered(_airline);
     }
 
-    function airlineRegistered(address _airline) requireIsOperational external view returns (bool) {
-        return flightSuretyData.airlineRegistered(_airline);
-    }
    /**
     * @dev Register a future flight for insuring.
     *
@@ -139,14 +135,26 @@ contract FlightSuretyApp {
     function registerFlight (string _flightCode, uint256 _timestamp) requireAirlineFunded external {
         flightSuretyData.registerFlight( msg.sender, _flightCode, _timestamp);
     }
+
+    function buy (string _flightCode, uint256 _timestamp, address _airline) external payable {
+        flightSuretyData.buy(msg.sender, msg.value, _flightCode, _timestamp, _airline);
+    }
     
    /**
     * @dev Called after oracle has updated flight status
     *
     */  
-    function processFlightStatus (address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal pure {
+    function processFlightStatus (address _airline, string memory _flight, uint256 _timestamp, uint8 _statusCode) internal {
+        flightSuretyData.updateFlightStatus(_airline, _flight, _timestamp, _statusCode);
     }
 
+    function updateFlightStatus (address _airline, string _flightCode, uint256 _timestamp) external {
+        return flightSuretyData.updateFlightStatus(_airline, _flightCode, _timestamp, STATUS_CODE_LATE_AIRLINE);
+    }
+
+    function creditInsurees (address _airline, string _flightCode, uint256 _timestamp) external {
+        flightSuretyData.creditInsurees(_airline, _flightCode, _timestamp);
+    }
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus (address airline, string flight, uint256 timestamp) external {

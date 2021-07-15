@@ -11,7 +11,7 @@ contract("Oracles", async (accounts) => {
 
   before("setup contract", async () => {
     config = await Test.Config(accounts);
-    await config.flightSuretyData.authorizeContract(
+    await config.flightSuretyData.authorizeCaller(
       config.flightSuretyApp.address
     );
 
@@ -70,13 +70,35 @@ contract("Oracles", async (accounts) => {
     assert.equal(registered, true, "Flight was not registered");
   });
 
-  it("(Passenger) Passenger can buy flight insurance", async () => {
+  it("(Passenger) Passenger can buy insurance", async () => {
     let amount = await config.flightSuretyData.FLIGHT_INSURANCE_AMOUNT.call();
-    let passenger = accounts[2];
+    let passenger1 = accounts[1];
+    let passenger2 = accounts[2];
 
-    await config.flightSuretyApp.buy();
+    await config.flightSuretyApp.buy(flight, timestamp, config.firstAirline, {
+      from: passenger1,
+      value: amount,
+    });
+    await config.flightSuretyApp.buy(flight, timestamp, config.firstAirline, {
+      from: passenger2,
+      value: amount,
+    });
+    let passengers = await config.flightSuretyApp.getInsuredPassengers(
+      flight,
+      timestamp,
+      config.firstAirline
+    );
 
-    // await config.flightSuretyData.
+    assert.equal(
+      passengers[0],
+      accounts[1],
+      "Passenger is not on the insured passenger list"
+    );
+    assert.equal(
+      passengers[1],
+      accounts[2],
+      "Passenger is not on the insured passenger list"
+    );
   });
 
   it("can request flight status", async () => {
@@ -124,5 +146,62 @@ contract("Oracles", async (accounts) => {
         }
       }
     }
+  });
+
+  it("(airline) update flight status", async () => {
+    let initialStatusCode = await config.flightSuretyData.checkFlightStatus(
+      config.firstAirline,
+      flight,
+      timestamp
+    );
+    await config.flightSuretyApp.updateFlightStatus(
+      config.firstAirline,
+      flight,
+      timestamp
+    );
+    let finalStatusCode = await config.flightSuretyData.checkFlightStatus(
+      config.firstAirline,
+      flight,
+      timestamp
+    );
+    assert.equal(initialStatusCode, 0, "Initial flight state should be 0");
+    assert.equal(finalStatusCode, 20, "Updated flight state should be 20");
+  });
+
+  it("(Passenger) if flight is delayed due to airline fault, insured passengers receives credit", async () => {
+    let passengers = await config.flightSuretyApp.getInsuredPassengers(
+      flight,
+      timestamp,
+      config.firstAirline
+    );
+    for (let i = 0; i < passengers.length; i++) {
+      let balance = await config.flightSuretyData.getPassengerBalance(
+        passengers[i]
+      );
+      balance = balance.toNumber();
+      assert.equal(balance, 0, "Initial passenger balance should be 0");
+    }
+    let initialFunds = await config.flightSuretyData.getFunds.call();
+    initialFunds = Web3.utils.fromWei(initialFunds.toString(), "ether");
+
+    await config.flightSuretyData.creditInsurees(
+      config.firstAirline,
+      flight,
+      timestamp,
+      { from: config.owner }
+    );
+    // check final balance of passengers after crediting
+    for (let i = 0; i < passengers.length; i++) {
+      let balance = await config.flightSuretyData.getPassengerBalance(
+        passengers[i]
+      );
+      balance = Web3.utils.fromWei(balance.toString(), "ether");
+      assert.equal(balance, 1.5, "final passenger balance should be 1.5 ether");
+    }
+    let finalFunds = await config.flightSuretyData.getFunds.call();
+    finalFunds = Web3.utils.fromWei(finalFunds.toString(), "ether");
+
+    assert.equal(initialFunds, 10, "initial funds should be 10"); // since only one airline paid the seed fund
+    assert.equal(finalFunds, 7, "final funds should be 7"); // since two passengers were credited 1.5 ether each
   });
 });

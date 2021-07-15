@@ -7,7 +7,7 @@ contract("Flight Surety Tests", async (accounts) => {
 
   before("setup contract", async () => {
     config = await Test.Config(accounts);
-    await config.flightSuretyData.authorizeContract(
+    await config.flightSuretyData.authorizeCaller(
       config.flightSuretyApp.address,
       { from: accounts[0] }
     );
@@ -27,7 +27,7 @@ contract("Flight Surety Tests", async (accounts) => {
     // Ensure that access is denied for non-Contract Owner account
     let accessDenied = false;
     try {
-      await config.flightSuretyApp.setOperatingStatus(false, {
+      await config.flightSuretyData.setOperatingStatus(false, {
         from: config.testAddresses[2],
       }); // This should throw an error allowing the catch block to run.
     } catch (e) {
@@ -40,7 +40,9 @@ contract("Flight Surety Tests", async (accounts) => {
     // Ensure that access is allowed for Contract Owner account
     let accessDenied = false;
     try {
-      await config.flightSuretyApp.setOperatingStatus(false);
+      await config.flightSuretyData.setOperatingStatus(false, {
+        from: config.owner,
+      });
     } catch (e) {
       accessDenied = true;
     }
@@ -52,8 +54,8 @@ contract("Flight Surety Tests", async (accounts) => {
   });
 
   it(`(multiparty) can block access to functions using requireIsOperational when operating status is false`, async function () {
-    await config.flightSuretyApp.setOperatingStatus(false, {
-      from: accounts[0],
+    await config.flightSuretyData.setOperatingStatus(false, {
+      from: config.owner,
     });
 
     let reverted = false;
@@ -65,7 +67,7 @@ contract("Flight Surety Tests", async (accounts) => {
     assert.equal(reverted, true, "Access not blocked for requireIsOperational");
 
     // Set it back for other tests to work
-    await config.flightSuretyApp.setOperatingStatus(true, {
+    await config.flightSuretyData.setOperatingStatus(true, {
       from: accounts[0],
     });
   });
